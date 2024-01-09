@@ -12,8 +12,6 @@ def menu():
         Linac()
     elif pilihFasilitas == 2:
         telecobalt()
-    elif pilihFasilitas == 3:
-        brachytherapy()
     else:
         print("Pilihan salah")
 
