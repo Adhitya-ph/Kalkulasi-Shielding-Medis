@@ -31,7 +31,8 @@ def main():
     SAD = 1             # Jarak dari sumber ke isosentris (SAD) (m)
     W = jumlahPasien * 5 * dosisPasien
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
-    print("\nAtenuasi B = %g" %B)
+    print("------------------------------------------------------")
+    print("Atenuasi B = %g" %B)
     
     n = log(1/B)
     print("Tenth Value Layer (TVL) yang diperlukan =", n)
@@ -58,6 +59,7 @@ def main():
         print("\nBesar tegangan LINAC: 24 MV")
     l = n * tvl / 10
     print("Ketebalan beton yang diperlukan = %g cm" %l)
+    print("------------------------------------------------------\n")
 
 if __name__ == "__main__":
     main()
