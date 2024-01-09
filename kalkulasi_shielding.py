@@ -6,7 +6,6 @@ def menu():
     print("Fasilitas radiasi kesehatan:")
     print("1. Linear Accelerator (LINAC)")
     print("2. Telecobalt-60")
-    print("3. Brachytherapy")
     pilihFasilitas = float(input("Masukkan opsi pilihan : "))
     if pilihFasilitas == 1:
         Linac()
