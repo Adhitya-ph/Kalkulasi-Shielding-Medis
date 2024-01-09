@@ -1,5 +1,5 @@
 # Program kalkulasi shielding
-from numpy import log10 as log
+from math import log10 as log
 def menu():
     print("Selamat Datang di Program Untuk Kalkulasi Shielding")
     print("---------------------------------------------------")
