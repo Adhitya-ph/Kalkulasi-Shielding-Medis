@@ -1,7 +1,7 @@
 from gooey import Gooey, GooeyParser
 from math import log10 as log
 
-@Gooey(program_name="Program Kalkulasi Shielding", navigation="TABBED")
+@Gooey(program_name="Program Kalkulasi Shielding", navigation="TABBED", show_success_modal=False, clear_before_run=True)
 def main():
     parser = GooeyParser(description="Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis")
     wajib = parser.add_argument_group('Parameter yang harus diisi (Desimal dalam format titik ".")', gooey_options={'show_border': True})
