@@ -5,17 +5,30 @@ from math import log10 as log
 def main():
     parser = GooeyParser(description="Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis")
     parser.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
-    parser.add_argument("jumlahPasien", action="store", help="Jumlah pasien dalam sehari (8 jam kerja)", metavar="Jumlah Pasien")
-    parser.add_argument("dosisPasien", action="store", help="Dosis yang diterima tiap pasien (Gy)", metavar="Dosis Pasien")
     parser.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari LINAC")
     parser.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
     parser.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
     parser.add_argument("pilvLinac", choices=["4 MV", "6 MV", "10 MV", "15 MV", "18 MV", "20 MV", "24 MV"], help="Pilih tegangan LINAC", metavar="Tegangan LINAC")
     
+    parser.add_argument("--jp_3DCRT", action="store", default=0, help="Rerata pasien untuk 3DCRT dalam sehari (8 jam kerja)", metavar="Pasien 3DCRT")
+    parser.add_argument("--jp_IMRT", action="store", default=0, help="Rerata pasien untuk IMRT dalam sehari (8 jam kerja)", metavar="Pasien IMRT")
+    parser.add_argument("--jp_SRS_SBRT", action="store", default=0, help="Rerata untuk SRS/SBRT dalam sehari (8 jam kerja)", metavar="Pasien SRS/SBRT")
+    parser.add_argument("--jp_RapidArc", action="store", default=0, help="Rerata pasien untuk RapidArc dalam sehari (8 jam kerja)", metavar="Pasien RapidArc")
+    parser.add_argument("--jp_QA", action="store", default=0, help="Rerata beam untuk QA dalam sehari (8 jam kerja)", metavar="Pasien QA")
+    
     args = parser.parse_args()
     
-    jumlahPasien = float(args.jumlahPasien)
-    dosisPasien = float(args.dosisPasien)
+    jp_3DCRT = float(args.jp_3DCRT)
+    dp_3DCRT = 4.0 
+    jp_IMRT = float(args.jp_IMRT)
+    dp_IMRT = 4.0
+    jp_SRS_SBRT = float(args.jp_SRS_SBRT)
+    dp_srs_sbrt = 4.0
+    jp_RapidArc = float(args.jp_RapidArc)
+    dp_RapidArc = 4.0
+    jp_QA = float(args.jp_QA)
+    dp_QA = 6.0
+    
     dc = float(args.dc)
     U = float(args.U)
     pilvLinac = args.pilvLinac
@@ -29,7 +42,7 @@ def main():
         P = float(20e-6) / 2       # Batas dosis perminggu untuk publik (1 mSv / 50 minggu = 20 uSv), dibagi 2 karena batas PerKa
     
     SAD = 1             # Jarak dari sumber ke isosentris (SAD) (m)
-    W = jumlahPasien * 5 * dosisPasien
+    W = (jp_3DCRT * dp_3DCRT * 5) + (jp_IMRT * dp_IMRT * 5) + (jp_SRS_SBRT * dp_srs_sbrt * 5) + (jp_RapidArc * dp_RapidArc * 5) + (jp_QA * dp_QA * 5)
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
     print("------------------------------------------------------")
     print("Atenuasi B = %g" %B)
