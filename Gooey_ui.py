@@ -1,5 +1,5 @@
 from gooey import Gooey, GooeyParser
-from math import log10 as log
+from math import sqrt, log10 as log
 
 def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, jp_QA):
     SAD = 1                        # Jarak dari sumber ke isosentris (SAD) (m)
@@ -9,16 +9,17 @@ def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, j
     dp_RapidArc = 4.0
     dp_QA = 6.0
     W = ((jp_3DCRT * dp_3DCRT) + (jp_IMRT * dp_IMRT) + (jp_SRS_SBRT * dp_srs_sbrt) + (jp_RapidArc * dp_RapidArc) + (jp_QA * dp_QA)) * 5
+
     if W*SAD**2 * U * T == 0:
         print("Value Error: Pastikan input jumlah pasien sudah benar.")
         return
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
-    print("------------------------------------------------------")
+    print("-------------------------------------------------------------------------------------")
     print("Perhitungan Shielding LINAC")
     print("Atenuasi B = %g" %B)
-        
+
     n = log(1/B)
-    print("Tenth Value Layer (TVL) yang diperlukan = %g" %n)
+    print("\nJumlah Tenth Value Layer (TVL) yang diperlukan = %g" %n)
     if pilvLinac == "4 MV":
         tvl = 290
         print("\nBesar tegangan LINAC: 4 MV")
@@ -40,23 +41,27 @@ def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, j
     if pilvLinac == "24 MV":
         tvl = 470
         print("\nBesar tegangan LINAC: 24 MV")
+    print("Tebal beton agar intensitas menjadi 10%% intensitas awalnya (Tebal TVL) = %g mm" %tvl)
     l = n * tvl / 10
-    print("Ketebalan beton yang diperlukan = %g cm" %l)
-    print("------------------------------------------------------\n")
+    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan = %g cm" %l)
+    bw = 0.4 * sqrt(2) * (dc+SAD) + 0.6
+    print("Primary Barrier Width = %g m" %bw)
+    print("-------------------------------------------------------------------------------------\n")
     
 def telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien):
     W = jumlahPasien * dosisPasien * 5
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
-    print("------------------------------------------------------")
+    print("-------------------------------------------------------------------------------------")
     print("Perhitungan Shielding Telecobalt")
     print("Atenuasi B = %g" %B)
         
     n = log(1/B)
-    print("Tenth Value Layer (TVL) yang diperlukan = %g" %n)
+    print("\nJumlah Tenth Value Layer (TVL) yang diperlukan = %g" %n)
     tvl = 218
+    print("Tebal beton agar intensitas menjadi 10%% intensitas awalnya (Tebal TVL) = %g mm" %tvl)
     l = n * tvl / 10
-    print("Ketebalan beton yang diperlukan = %g cm" %l)
-    print("------------------------------------------------------\n")
+    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan = %g cm" %l)
+    print("-------------------------------------------------------------------------------------\n")
 
 @Gooey(program_name="Program Kalkulasi Shielding", navigation="TABBED", show_success_modal=False, clear_before_run=True, default_size=(700, 600))
 def main():
