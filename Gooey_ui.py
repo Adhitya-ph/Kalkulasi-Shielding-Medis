@@ -16,6 +16,7 @@ def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, j
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
     print("-------------------------------------------------------------------------------------")
     print("Perhitungan Shielding LINAC")
+    print("Beban kerja total: %g Gy / minggu" %W)
     print("Atenuasi B = %g" %B)
 
     n = log(1/B)
@@ -67,20 +68,23 @@ def telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien):
 def main():
     parser = GooeyParser(description="Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis")
     subparsers = parser.add_subparsers(help='commands', dest='command')
-
+    
     # Linac parser
     linac_parser = subparsers.add_parser('LINAC', help='Linac calculation')
-    linac_parser.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
-    linac_parser.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari LINAC")
-    linac_parser.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
-    linac_parser.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
-    linac_parser.add_argument("pilvLinac", choices=["4 MV", "6 MV", "10 MV", "15 MV", "18 MV", "20 MV", "24 MV"], help="Pilih tegangan LINAC dari opsi yang tersedia", metavar="Tegangan LINAC")
+    spec_fasilitas = linac_parser.add_argument_group("Spesifikasi Fasilitas LINAC")
+    jumlah_pasien = linac_parser.add_argument_group("Jumlah Pasien LINAC")
     
-    linac_parser.add_argument("--jp_3DCRT", action="store", default=0, help="Rerata pasien untuk 3DCRT dalam sehari (8 jam kerja)", metavar="Pasien 3DCRT")
-    linac_parser.add_argument("--jp_IMRT", action="store", default=0, help="Rerata pasien untuk IMRT dalam sehari (8 jam kerja)", metavar="Pasien IMRT")
-    linac_parser.add_argument("--jp_SRS_SBRT", action="store", default=0, help="Rerata pasien untuk SRS/SBRT dalam sehari (8 jam kerja)", metavar="Pasien SRS/SBRT")
-    linac_parser.add_argument("--jp_RapidArc", action="store", default=0, help="Rerata pasien untuk RapidArc dalam sehari (8 jam kerja)", metavar="Pasien RapidArc")
-    linac_parser.add_argument("--jp_QA", action="store", default=0, help="Rerata beam untuk QA dalam sehari (8 jam kerja)", metavar="Pasien QA")
+    spec_fasilitas.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
+    spec_fasilitas.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari LINAC")
+    spec_fasilitas.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
+    spec_fasilitas.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
+    spec_fasilitas.add_argument("pilvLinac", choices=["4 MV", "6 MV", "10 MV", "15 MV", "18 MV", "20 MV", "24 MV"], help="Pilih tegangan LINAC dari opsi yang tersedia", metavar="Tegangan LINAC")
+    
+    jumlah_pasien.add_argument("--jp_3DCRT", action="store", default=0, help="Rerata pasien untuk 3DCRT dalam sehari (8 jam kerja)", metavar="Pasien 3DCRT")
+    jumlah_pasien.add_argument("--jp_IMRT", action="store", default=0, help="Rerata pasien untuk IMRT dalam sehari (8 jam kerja)", metavar="Pasien IMRT")
+    jumlah_pasien.add_argument("--jp_SRS_SBRT", action="store", default=0, help="Rerata pasien untuk SRS/SBRT dalam sehari (8 jam kerja)", metavar="Pasien SRS/SBRT")
+    jumlah_pasien.add_argument("--jp_RapidArc", action="store", default=0, help="Rerata pasien untuk RapidArc dalam sehari (8 jam kerja)", metavar="Pasien RapidArc")
+    jumlah_pasien.add_argument("--jp_QA", action="store", default=0, help="Rerata beam untuk QA dalam sehari (8 jam kerja)", metavar="Pasien QA")
     
     telecobalt_parser = subparsers.add_parser('Telecobalt', help='Telecobalt calculation')
     telecobalt_parser.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
