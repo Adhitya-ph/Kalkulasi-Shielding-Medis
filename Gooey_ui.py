@@ -66,7 +66,7 @@ def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, j
             alpha = 3.02e-4
             tvl_scatter = 144
     l = n * tvl / 10
-    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan (primary wall) = %g cm" %l)
+    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan (primary barrier) = %g cm" %l)
     
     bw = 0.4 * sqrt(2) * (dc+SAD) + 0.6
     print("Primary Barrier Width = %g m" %bw)
@@ -90,22 +90,51 @@ def linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, j
         l_secondary = max(l_scatter, l_leak)
     elif abs(l_scatter-l_leak) <= tvl_leak / 10:
         l_secondary = max(l_scatter, l_leak) + (0.301 * tvl_leak / 10)
-    print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (secondary shield) = %g cm" %l_secondary)
+    print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (secondary barrier) = %g cm" %l_secondary)
     print("---------------------------------------------------------------------------------------------------------\n")
     
-def telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien):
+def telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien, ds, angle, F):
     W = jumlahPasien * dosisPasien * 5
     B = P * (dc+SAD)**2 / ((W*SAD**2) * U * T)
+    B_leak = 1000 * P * ds**2 / ((W*SAD**2) * T)
     print("---------------------------------------------------------------------------------------------------------")
     print("Perhitungan Shielding Telecobalt")
-    print("Atenuasi B = %g" %B)
         
     n = log(1/B)
+    n_leak = log(1/B_leak)
     print("\nJumlah Tenth Value Layer (TVL) yang diperlukan = %g" %n)
     tvl = 218
-    print("Tebal beton agar intensitas menjadi 10%% intensitas awalnya (Tebal TVL) = %g mm" %tvl)
+    tvl_leak = 218
+    
+    if angle == 30:
+        alpha = 6e-3
+        tvl_scatter = 213
+    elif angle == 45:
+        alpha = 3.7e-3
+        tvl_scatter = 197
+    elif angle == 60:
+        alpha = 2.2e-3
+        tvl_scatter = 189
+    elif angle == 90:
+        alpha = 9.1e-4
+        tvl_scatter = 151
+    elif angle == 135:
+        alpha = 5.4e-4
+        tvl_scatter = 128
+    
     l = n * tvl / 10
-    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan = %g cm" %l)
+    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan (primary wall) = %g cm" %l)
+    l_leak = n_leak * tvl_leak / 10
+    print("\nKetebalan beton agar memenuhi batas laju dosis yang ditetapkan (leakage) = %g cm" %l_leak)
+    b_patient = P * dc**2 / ((alpha * (W*SAD**2) * T) * (F/400))
+    n_patient = log(1/b_patient)
+    l_scatter = (n_patient * tvl_scatter) / 10
+    print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (scatter) = %g cm" %l_scatter)
+    if abs(l_scatter-l_leak) > tvl_leak / 10:
+        l_secondary = max(l_scatter, l_leak)
+    elif abs(l_scatter-l_leak) <= tvl_leak / 10:
+        l_secondary = max(l_scatter, l_leak) + (0.301 * tvl_leak / 10)
+    print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (secondary barrier) = %g cm" %l_secondary)
     print("---------------------------------------------------------------------------------------------------------\n")
 
 @Gooey(program_name="Program Kalkulasi Shielding",
@@ -127,14 +156,18 @@ def telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien):
               'items': [{'type': 'MessageDialog', 
                          'menuTitle': 'Informasi Program',
                          'message': 'Kalkulator Shielding Fasilitas Medis\n\nProgram ini dibuat untuk memudahkan petugas dalam menghitung ketebalan shielding yang diperlukan dari fasilitas medis.'
+                         '\nProgram ini dibuat menggunakan bahasa Python, dan menggunakan bantuan GUI yaitu library Gooey.'
                          '\n \nProgram ini dibuat oleh:\n- Adhitya Pryazada Hadi\n \nJika ada kritik dan saran terhadap program ini, silahkan hubungi nomor WA:\n0878 5502 0870',
-                         'caption': 'Informasi Program'}
-                        ]
-              }]
+                         'caption': 'Informasi Program'},
+                        {'type': 'Link', 
+                         'menuTitle': 'Source Code',
+                         'url': 'https://github.com/Adhitya-ph/Kalkulasi-Shielding-Medis.git'}
+                        ]},
+             ]
        )
 
 def main(): 
-    parser = GooeyParser(description='Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis\nMasukkan parameter yang diperlukan, jika desimal gunakan koma (",")')
+    parser = GooeyParser(description='Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis\nMasukkan parameter yang diperlukan, jika desimal gunakan titik (".")')
     subparsers = parser.add_subparsers(help='commands', dest='command')
     
     # Linac parser
@@ -163,13 +196,20 @@ def main():
     
     # Telecobalt parser
     telecobalt_parser = subparsers.add_parser('Telecobalt', help='Telecobalt calculation')
-    telecobalt_parser.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
-    telecobalt_parser.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari Telecobalt")
-    telecobalt_parser.add_argument("SAD", action="store", help="Jarak dari sumber ke isosentris (m)", metavar="SAD")
-    telecobalt_parser.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
-    telecobalt_parser.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
-    telecobalt_parser.add_argument("jumlahPasien", action="store", help="Masukkan jumlah pasien per hari (8 jam kerja)", metavar="Jumlah Pasien")
-    telecobalt_parser.add_argument("dosisPasien", action="store", default=3, help="Masukkan jumlah dosis per pasien (Gy)", metavar="Dosis Pasien")
+    spec_fasilitas = telecobalt_parser.add_argument_group("Spesifikasi Fasilitas Telecobalt")
+    leak_scatter = telecobalt_parser.add_argument_group("Faktor Leak dan Scattering")
+    
+    spec_fasilitas.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
+    spec_fasilitas.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari Telecobalt")
+    spec_fasilitas.add_argument("SAD", action="store", help="Jarak dari sumber ke isosentris (m)", metavar="SAD")
+    spec_fasilitas.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
+    spec_fasilitas.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
+    spec_fasilitas.add_argument("jumlahPasien", action="store", help="Masukkan jumlah pasien per hari (8 jam kerja)", metavar="Jumlah Pasien")
+    spec_fasilitas.add_argument("dosisPasien", action="store", default=3, help="Masukkan jumlah dosis per pasien (Gy)", metavar="Dosis Pasien")
+    
+    leak_scatter.add_argument("ds", action="store", help="Jarak dari isosentris ke permukaan luar secondary barrier (m)", metavar="Ds")
+    leak_scatter.add_argument("F", action="store", help="Field area incident di pasien (cm^2)", metavar="Field Area Incident")
+    leak_scatter.add_argument("angle", choices=["30", "45", "60", "90", "135"], help="Sudut sebaran (scatter angle) (derajat)", metavar="Sudut Scatter")
     
     args = parser.parse_args()
     
@@ -177,10 +217,7 @@ def main():
     dc = float(args.dc)
     U = float(args.U)
     T = float(args.T)
-    dw = float(args.dw)
-    dr = float(args.dr)
     F = float(args.F)
-    A = float(args.A)
     angle = float(args.angle)
     
     if pengguna == "Shielding Petugas Radiasi":
@@ -197,6 +234,9 @@ def main():
         jp_SRS_SBRT = float(args.jp_SRS_SBRT)
         jp_RapidArc = float(args.jp_RapidArc)
         jp_QA = float(args.jp_QA)
+        dw = float(args.dw)
+        dr = float(args.dr)
+        A = float(args.A)
         
         linac(P, dc, U, T, pilvLinac, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, jp_QA, dw, dr, F, A, angle)
         
@@ -205,8 +245,9 @@ def main():
         SAD = float(args.SAD)
         jumlahPasien = float(args.jumlahPasien)
         dosisPasien = float(args.dosisPasien)
+        ds = float(args.ds)
         
-        telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien)
+        telecobalt(P, dc, SAD, U, T, jumlahPasien, dosisPasien, ds, angle, F)
     
 if __name__ == "__main__":
     main()
