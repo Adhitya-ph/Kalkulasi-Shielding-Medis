@@ -1,3 +1,7 @@
+# Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis yaitu LINAC
+# Program mengacu pada IAEA Safety Report Series No. 47 (2006) - Radiation Protection in the Design of Radiotherapy Facilities
+# Library yang diperlukan: Gooey (Tampilan GUI), "pip install Gooey"
+
 from gooey import Gooey, GooeyParser
 from math import sqrt, log10 as log
 
@@ -15,9 +19,8 @@ def linac_prim(P, pilvLinac, dc, U, T, dn, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_Ra
         return
     B = P * (dc+dsca)**2 / ((W*dsca**2) * U * T)
     print("---------------------------------------------------------------------------------------------------------")
-    print("Perhitungan Shielding LINAC")
-    print("\nBesar tegangan LINAC: 6 MV")
-    print("\nBeban kerja total (primer): %g Gy / minggu" %W)
+    print("Perhitungan Shielding Primer LINAC")
+    print("\nBeban kerja primer: %g Gy / minggu" %W)
 
     n = log(1/B)
     
@@ -35,9 +38,12 @@ def linac_prim(P, pilvLinac, dc, U, T, dn, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_Ra
     print("Primary Barrier Width = %g m" %bw)
     print("---------------------------------------------------------------------------------------------------------\n")
     
-def linac_sec(P, pilvLinac, W, W_leak, U, T, dsca, dsec, dw, dr, ds, F, A, angle):
+def linac_sec(P, pilvLinac, W, W_leak, U, T, dsec, dw, dr, F, A, angle):
     print("---------------------------------------------------------------------------------------------------------")
-        
+    print("Perhitungan Shielding Sekunder LINAC")
+    print("\nBeban kerja primer: %g Gy / minggu" %W)
+    print("Beban kerja leakage: %g Gy / minggu" %W_leak)
+    dsca = 1                        # Jarak dari LINAC ke isosentris (Dsca) (m)
     if pilvLinac == "6 MV":
         print("\nBesar tegangan LINAC: 6 MV")
         tvl = 343
@@ -77,22 +83,38 @@ def linac_sec(P, pilvLinac, W, W_leak, U, T, dsca, dsec, dw, dr, ds, F, A, angle
             alpha = 3.02e-4
             tvl_scatter = 144
         
+    # Perhitungan patient scatter barrier
     b_patient= P * dsca**2 * dsec**2 / (alpha * (W*dsca**2) * T * F/400)   # P * (dsca**2 * dsec**2) / (alpha * A * (W) * U * T)    
     n_patient = log(1/b_patient)
     l_patient = n_patient * tvl_scatter / 10
     print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (patient scatter barrier) = %g cm" %l_patient)
     
+    # Perhitungan wall scatter barrier
     b_wall = P * dw**2 * dr**2 / (alpha * A * (W_leak*dsca**2) * U * T)   # P * (dw**2 * dr**2) / (alpha * A * (W) * U * T)
     n_wall = log(1/b_wall)
     l_wall = n_wall * tvl_scatter / 10
     print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (wall scatter barrier) = %g cm" %l_wall)
     
-    b_leak = 1000 * P * ds**2 / ((W_leak*dsca**2) * T)
+    # Perhitungan leakage barrier
+    b_leak = 1000 * P * dsec**2 / ((W_leak*dsca**2) * T)
     n_leak = log(1/b_leak)
     l_leak = n_leak * tvl_leak / 10
     print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (leakage barrier) = %g cm" %l_leak)
+    
+    if abs(n_patient - n_wall) > 1:
+        n_scatter = max(n_patient, n_wall)
+    elif abs(n_patient - n_wall) <= 1:
+        n_scatter = max(n_patient, n_wall) + 0.301    # HVL = 0.301 TVL
+    l_scatter = (n_scatter * tvl_scatter) / 10
+
+    if abs(l_scatter-l_leak) > tvl_leak / 10:
+        l_secondary = max(l_scatter, l_leak)
+    elif abs(l_scatter-l_leak) <= tvl_leak / 10:
+        l_secondary = max(l_scatter, l_leak) + (0.301 * tvl_leak / 10)
+    print("Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (secondary barrier) = %g cm" %l_secondary)
     print("---------------------------------------------------------------------------------------------------------")
 
+# Pengaturan GUI Gooey
 @Gooey(program_name="Program Kalkulasi Shielding",
        navigation="TABBED",
        show_success_modal=False,
@@ -121,6 +143,7 @@ def linac_sec(P, pilvLinac, W, W_leak, U, T, dsca, dsec, dw, dr, ds, F, A, angle
                         ]}]
        )
 
+# Input parameter
 def main(): 
     parser = GooeyParser(description='Program yang mengkalkulasi ketebalan beton yang diperlukan dari fasilitas medis\nMasukkan parameter yang diperlukan, jika desimal gunakan titik (".")')
     subparsers = parser.add_subparsers(help='commands', dest='command')
@@ -132,9 +155,9 @@ def main():
     
     spec_fasilitas.add_argument("Pengguna", choices=["Shielding Petugas Radiasi", "Shielding Publik"], help="Pilih target shielding", metavar="Target Shielding")
     spec_fasilitas.add_argument("dc", action="store", help="Jarak dari isosentris ke titik yang ingin dicari (m)", metavar="Jarak dari LINAC")
-    spec_fasilitas.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
-    spec_fasilitas.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
-    spec_fasilitas.add_argument("Dn", action="store", help="Masukkan jarak ke dinding primer (barrier width) (m)", metavar="Jarak ke Dinding Primer (Barrier Width)")
+    spec_fasilitas.add_argument("U", choices=["0.25", "0.33", "1.0"], help="Masukkan use factor", metavar="Use Factor")
+    spec_fasilitas.add_argument("T", choices=["1 - Office, Patient Room", "1/4 - Corridors", "1/16 - Toilets, Stairways, Storage Room"], help="Masukkan occupancy factor (petugas radiasi = 1)", metavar="Occupancy Factor")
+    spec_fasilitas.add_argument("dn", action="store", help="Masukkan jarak ke dinding primer (barrier width) (m)", metavar="Jarak ke Dinding Primer (Barrier Width)")
     spec_fasilitas.add_argument("pilvLinac", choices=["6 MV", "10 MV"], help="Pilih tegangan LINAC dari opsi yang tersedia", metavar="Tegangan LINAC")
     
     jumlah_pasien.add_argument("--jp_3DCRT", action="store", default=0, help="Rerata pasien untuk 3DCRT dalam sehari (8 jam kerja)", metavar="Pasien 3DCRT")
@@ -152,26 +175,36 @@ def main():
     sec_parser.add_argument("dsec", action="store", help="Jarak dari pasien ke titik yang ingin dicari (m)", metavar="Dsec")
     sec_parser.add_argument("dw", action="store", help="Jarak dari LINAC ke dinding sebaran (m)", metavar="Dw")
     sec_parser.add_argument("dr", action="store", help="Jarak dari dinding sebaran ke titik target (m)", metavar="Dr")
-    sec_parser.add_argument("dc", action="store", help="Jarak dari isosentris ke titik target (m)", metavar="Dc")
-    sec_parser.add_argument("U", action="store", help="Masukkan use factor (0-1)", metavar="Use Factor")
-    sec_parser.add_argument("T", action="store", help="Masukkan occupancy factor (0-1)\n*(1 untuk petugas radiasi)", metavar="Occupancy Factor")
-    sec_parser.add_argument("F", action="store", help="Area kolimator (cm^2)", metavar="Area Kolimator")
-    sec_parser.add_argument("A", action="store", help="Area dinding sebaran (wall scattering) (m^2)", metavar="Area Dinding Sebaran")
-    sec_parser.add_argument("angle", choices=["30", "45", "60", "90", "135"], help="Sudut sebaran (scatter angle) (derajat)", metavar="Sudut Scatter")
+    sec_parser.add_argument("U", choices=["0.25", "0.33", "1.0"], help="Masukkan use factor", metavar="Use Factor")
+    sec_parser.add_argument("T", choices=["1 - Office, Patient Room", "1/4 - Corridors", "1/16 - Toilets, Stairways, Storage Room"], help="Masukkan occupancy factor (petugas radiasi = 1)", metavar="Occupancy Factor")
+    sec_parser.add_argument("F", action="store", help="Area bukaan kolimator (cm^2)", metavar="Area Kolimator")
+    sec_parser.add_argument("A", action="store", help="Luas area dinding yang menerima sebaran (wall scattering) (m^2)", metavar="Area Dinding Sebaran")
+    sec_parser.add_argument("angle", choices=["30", "45", "60", "90", "135"], help="Sudut arah LINAC ke dinding sekunder (derajat)", metavar="Sudut Sebaran")
     
+    # Parsing argument yang dimasukkan
     args = parser.parse_args()
     
     pengguna = args.Pengguna
     pilvLinac = args.pilvLinac
     U = float(args.U)
-    T = float(args.T)
+    T = args.T
     
+    # Pengaturan nilai T
+    if T == "1 - Office, Patient Room":
+        T = 1
+    elif T == "1/4 - Corridors":
+        T = 0.25
+    elif T == "1/16 - Toilets, Stairways, Storage Room":
+        T = 0.0625
+
+    # Percabangan untuk menentukan nilai P
     if pengguna == "Shielding Petugas Radiasi":
-        T = 1.0
+        T = 1.0                    # Petugas radiasi memiliki occupancy factor 1
         P = float(400e-6) / 2      # Batas dosis perminggu untuk petugas radiasi (20 mSv / 50 minggu = 400 uSv) dibagi 2 karena batas PerKa
     elif pengguna == "Shielding Publik":
         P = float(20e-6) / 2       # Batas dosis perminggu untuk publik (1 mSv / 50 minggu = 20 uSv), dibagi 2 karena batas PerKa
-    
+
+    # Percabangan yang memilih fungsi shielding primer
     if args.command == 'Primary_Barrier':
         # Call primary barrier function
         dc = float(args.dc)
@@ -180,24 +213,23 @@ def main():
         jp_SRS_SBRT = float(args.jp_SRS_SBRT)
         jp_RapidArc = float(args.jp_RapidArc)
         jp_QA = float(args.jp_QA)
-        dn = float(args.Dn)
+        dn = float(args.dn)
         
         linac_prim(P, pilvLinac, dc, U, T, dn, jp_3DCRT, jp_IMRT, jp_SRS_SBRT, jp_RapidArc, jp_QA)
         
+    # Percabangan yang memilih fungsi shielding sekunder
     elif args.command == 'Secondary_Barrier':
         # Call secondary barrier function
         W = float(args.W)
         W_leak = float(args.W_leak)
-        dsca = float(args.dsca)
         dsec = float(args.dsec)
         dw = float(args.dw)
         dr = float(args.dr)
-        dc = float(args.dc)
         F = float(args.F)
         angle = float(args.angle)
         A = float(args.A)
         
-        linac_sec(P, pilvLinac, W, W_leak, U, T, dsca, dsec, dw, dr, dc, F, A, angle)
+        linac_sec(P, pilvLinac, W, W_leak, U, T, dsec, dw, dr, F, A, angle)
     
 if __name__ == "__main__":
     main()
