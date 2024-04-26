@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+        padding-bottom: 60px; /* Adjust this value to match the height of your footer */
+    }
+        /* Styles for the container */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: auto;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Styles for the navigation bar */
+        .navbar {
+            overflow: hidden;
+            background-color: #4CAF50;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .navbar a {
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #45a049;
+            color: black;
+        }
+
+        /* Styles for the content sections */
+        .content {
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styles for the tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Styles for inputs, buttons, and result paragraphs */
+        .content input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+        }
+
+        .content button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .content button:hover {
+            background-color: #45a049;
+        }
+
+        .content p {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        #prim {
+            display: block;
+        }
+
+        #sec {
+            display: none;
+        }
+
+        .content-item {
+            margin-bottom: 7px;
+        }
+        
+        .content-item-dd {
+            margin-bottom: 14px;
+        }
+        .result {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        color: #333;
+        font-size: 18px;
+        line-height: 1.6;
+        border: 1px solid #ddd;
+    }
+        
+    </style>
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <!-- Main title -->
+        <h1>Kalkulasi Shielding LINAC</h1>
+
+        <!-- Navigation bar -->
+        <div class="navbar">
+            <a href="#" onclick="showMenu('prim')">Shielding Primer</a>
+            <a href="#" onclick="showMenu('sec')">Shielding Sekunder</a>
+        </div>
+
+        <!-- Primary Shielding -->
+        <div id="prim" class="content" style="text-align: center;">
+            <h2 class="content-item" style="margin-bottom: 40px;">Kalkulasi Shielding Primer</h2>
+
+            <!--Pilihan target-->
+            <label for="pengguna_prim" class="content-item">Target Shielding</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Pilih target shielding</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="pengguna_prim" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="1">Petugas Radiasi</option>
+                    <option value="2">Publik</option>
+                </select>
+            </div>
+            
+            <!--Pilihan tegangan LINAC-->
+            <label for="vLinac_prim">Tegangan LINAC:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Pilih tegangan LINAC</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="vLinac_prim" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="6">6 MV</option>
+                    <option value="10">10 MV</option>
+                </select>
+            </div>
+
+            <!--Input jarak dari LINAC-->
+            <label for="dc">Jarak dari LINAC:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Jarak dari isosentris ke titik yang ingin dicari (m)</span>
+            </div>
+            <div class="content-item">
+                <input id="dc" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Pilihan use factor-->
+            <label for="U_prim">Use Factor:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan use factor (0-1)</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="U_prim" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="0.25">0.25</option>
+                    <option value="0.33">0.33</option>
+                    <option value="1">1</option>
+                </select>
+            </div>
+
+            <!--Pilihan Occupancy Factor-->
+            <label for="T_prim" class="content-item">Occupancy Factor</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan occupancy factor (0-1)</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="T_prim" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="1">1 - Office, Patient Room</option>
+                    <option value="0.25">1/4 - Corridors</option>
+                    <option value="0.0625">1/16 - Toilets, Stairways, Storage Room</option>
+                </select>
+            </div>
+
+            <!--Input jarak dari LINAC-->
+            <label for="dn">Jarak ke Dinding Primer (Barrier Width):</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan jarak ke dinding primer (barrier width) (m)</span>
+            </div>
+            <div class="content-item">
+                <input id="dn" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input jumlah pasien 3DCRT-->
+            <label for="jp_3DCRT">Pasien 3DCRT:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Rerata pasien untuk 3DCRT dalam sehari (8 jam kerja)</span>
+            </div>
+            <div class="content-item">
+                <input id="jp_3DCRT" type="number" value="0" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input jumlah pasien IMRT-->
+            <label for="jp_IMRT">Pasien IMRT:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Rerata pasien untuk IMRT dalam sehari (8 jam kerja)</span>
+            </div>
+            <div class="content-item">
+                <input id="jp_IMRT" type="number" value="0" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input jumlah pasien SRS/SBRT-->
+            <label for="jp_SRS_SBRT">Pasien SRS/SBRT:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Rerata pasien untuk SRS/SBRT dalam sehari (8 jam kerja)</span>
+            </div>
+            <div class="content-item">
+                <input id="jp_SRS_SBRT" type="number" value="0" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input jumlah pasien RapidArc-->
+            <label for="jp_RapidArc">Pasien RapidArc:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Rerata pasien untuk RapidArc dalam sehari (8 jam kerja)</span>
+            </div>
+            <div class="content-item">
+                <input id="jp_RapidArc" type="number" value="0" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input jumlah QA-->
+            <label for="jp_QA">Jumlah QA:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Rerata beam untuk QA dalam sehari (8 jam kerja)</span>
+            </div>
+            <div class="content-item">
+                <input id="jp_QA" type="number" value="0" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Proses input menjadi output-->
+            <button onclick="primCalc()" class="content-item">Calculate</button>
+            <p id="primResult" class="content-item result"></p>
+        </div>
+
+        <!-- Secondary Shielding -->
+        <div id="sec" class="content">
+            <h2>Kalkulasi Shielding Sekunder</h2>
+
+            <!--Pilihan target-->
+            <label for="pengguna_sec" class="content-item">Target Shielding</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Pilih target shielding</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="pengguna_sec" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="1">Petugas Radiasi</option>
+                    <option value="2">Publik</option>
+                </select>
+            </div>
+            
+            <!--Pilihan tegangan LINAC-->
+            <label for="vLinac_sec">Tegangan LINAC:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Pilih tegangan LINAC</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="vLinac_sec" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="6">6 MV</option>
+                    <option value="10">10 MV</option>
+                </select>
+            </div>
+
+            <!--Input beban kerja total-->
+            <label for="W_sec">Beban Kerja Total:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan beban kerja total (Gy/minggu)</span>
+            </div>
+            <div class="content-item">
+                <input id="W_sec" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input beban kerja leakage-->
+            <label for="W_leak">Beban Kerja Leakage:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan beban kerja leakage (Gy/minggu)</span>
+            </div>
+            <div class="content-item">
+                <input id="W_leak" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input Dsec-->
+            <label for="dsec">Jarak dari pasien ke titik yang ingin dicari (Dsec):</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Jarak dari pasien ke titik yang ingin dicari (m)</span>
+            </div>
+            <div class="content-item">
+                <input id="dsec" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input Dw-->
+            <label for="dw">Jarak dari LINAC ke dinding sebaran (Dw):</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Jarak dari LINAC ke dinding sebaran (m)</span>
+            </div>
+            <div class="content-item">
+                <input id="dw" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input Dr-->
+            <label for="dr">Jarak dari dinding sebaran ke titik target (Dr):</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Jarak dari dinding sebaran ke titik target (m)</span>
+            </div>
+            <div class="content-item">
+                <input id="dr" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Pilihan use factor-->
+            <label for="U_sec">Use Factor:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan use factor (0-1)</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="U_sec" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="0.25">0.25</option>
+                    <option value="0.33">0.33</option>
+                    <option value="1">1</option>
+                </select>
+            </div>
+
+            <!--Pilihan Occupancy Factor-->
+            <label for="T_sec" class="content-item">Occupancy Factor</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Masukkan occupancy factor (0-1)</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="T_sec" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="1">1 - Office, Patient Room</option>
+                    <option value="0.25">1/4 - Corridors</option>
+                    <option value="0.0625">1/16 - Toilets, Stairways, Storage Room</option>
+                </select>
+            </div>
+
+            <!--Input F-->
+            <label for="F">Area Kolimator:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Area bukaan kolimator (cm^2)</span>
+            </div>
+            <div class="content-item">
+                <input id="F" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Input A-->
+            <label for="A">Area Dinding Sebaran:</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Luas area dinding yang menerima sebaran (wall scattering) (m^2)</span>
+            </div>
+            <div class="content-item">
+                <input id="A" type="number" style="text-align: center; font-size: 17px">
+            </div>
+
+            <!--Pilihan Angle-->
+            <label for="angle" class="content-item">Sudut Sebaran</label>
+            <div class="tooltip content-item">(?)
+                <span class="tooltiptext">Sudut arah LINAC ke dinding sekunder (derajat)</span>
+            </div>
+            <div class="content-item-dd">
+                <select id="angle" style="display: block; margin: 0 auto; width: 100%; font-size: 17px; padding: 5px; text-align: center;">
+                    <option value="30">30</option>
+                    <option value="45">45</option>
+                    <option value="60">60</option>
+                    <option value="90">90</option>
+                    <option value="135">135</option>
+                </select>
+            </div>
+
+            <button onclick="secCalc()" class="content-item">Calculate</button>
+            <p id="secResult" class="content-item result"></p>
+        </div>
+    </div>
+
+    <script>
+        function showMenu(menuId) {
+            // Hide all menus
+            document.getElementById('prim').style.display = 'none';
+            document.getElementById('sec').style.display = 'none';
+
+            // Show the selected menu
+            document.getElementById(menuId).style.display = 'block';
+        }
+
+        function primCalc() {
+            dsca = 1                        // Jarak dari sumber ke isosentris (Dsca) (m)
+            dp_3DCRT = 4.0 
+            dp_IMRT = 4.0
+            dp_srs_sbrt = 4.0
+            dp_RapidArc = 4.0
+            dp_QA = 6.0
+
+            var jp_3DCRT = document.getElementById('jp_3DCRT').value;
+            var jp_IMRT = document.getElementById('jp_IMRT').value;
+            var jp_SRS_SBRT = document.getElementById('jp_SRS_SBRT').value;
+            var jp_RapidArc = document.getElementById('jp_RapidArc').value;
+            var jp_QA = document.getElementById('jp_QA').value;
+
+            var W = ((jp_3DCRT * dp_3DCRT) + (jp_IMRT * dp_IMRT) + (jp_SRS_SBRT * dp_srs_sbrt) + (jp_RapidArc * dp_RapidArc) + (jp_QA * dp_QA)) * 5;
+
+            var pengguna_prim = document.getElementById('pengguna_prim').value;
+            var U_prim = document.getElementById('U_prim').value;
+            var T_prim = document.getElementById('T_prim').value;
+            var dc = document.getElementById('dc').value;
+            var vLinac_prim = document.getElementById('vLinac_prim').value;
+            var dn = document.getElementById('dn').value;
+
+            document.getElementById('primResult').innerText = "Perhitungan Shielding Primer LINAC";
+
+            if (vLinac_prim === "6") {
+                document.getElementById('primResult').innerHTML += "<br><br>Besar tegangan LINAC: 6 MV (TVL = 343 g/cm<sup>2</sup>)";
+                var tvl = 343;
+            } else if (vLinac_prim === "10") {
+                document.getElementById('primResult').innerHTML += "<br><br>Besar tegangan LINAC: 10 MV (TVL = 389 g/cm<sup>2</sup>)";
+                var tvl = 389;
+            }
+
+            if (pengguna_prim === "1") {
+                var P = 200e-6
+            } else if (pengguna_prim === "2") {
+                var P = 10e-6
+            }
+
+            if (W * Math.pow(dsca, 2) * U_prim * T_prim === 0) {
+                document.getElementById('primResult').innerHTML = "Value Error: Pastikan input jumlah pasien sudah benar.";
+                return;
+            }
+
+            var B = P * Math.pow((dc + dsca), 2) / ((W * Math.pow(dsca, 2)) * U_prim * T_prim);
+            document.getElementById('primResult').innerHTML += "<br><br>Beban kerja primer: " + W + " Gy / minggu";
+
+            var n = Math.log(1 / B);
+
+            var l = n * tvl / 10;
+            if (l <= 0) {
+                document.getElementById('primResult').innerHTML += "<br>Sudah dibawah batas dosis: Tidak perlu beton primer";
+            } else {
+                document.getElementById('primResult').innerHTML += "<br>Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (Primary Barrier) = " + l.toFixed(2) + " cm";
+            }
+
+            var bw = 0.4 * Math.sqrt(2) * dn + 0.6;
+            document.getElementById('primResult').innerHTML += "<br>Primary Barrier Width = " + bw.toFixed(2) + " m";
+        }
+
+        function secCalc() {
+            var pengguna_sec = document.getElementById('pengguna_sec').value;
+            var vLinac_sec = document.getElementById('vLinac_sec').value;
+            var W_sec = document.getElementById('W_sec').value;
+            var W_leak = document.getElementById('W_leak').value;
+            var dsec = document.getElementById('dsec').value;
+            var dw = document.getElementById('dw').value;
+            var dr = document.getElementById('dr').value;
+            var U_sec = document.getElementById('U_sec').value;
+            var T_sec = document.getElementById('T_sec').value;
+            var F = document.getElementById('F').value;
+            var A = document.getElementById('A').value;
+            var angle = document.getElementById('angle').value;
+            var dsca = 1;
+
+            document.getElementById('secResult').innerText = "Perhitungan Shielding Sekunder LINAC";
+
+            if (vLinac_sec === "6") {
+                document.getElementById('secResult').innerHTML += "<br><br>Besar tegangan LINAC: 6 MV (TVL = 343 g/cm<sup>2</sup>)";
+                var tvl = 343;
+                var tvl_leak = 279;
+                if (angle === "30") {
+                    var alpha = 2.77e-3;
+                    var tvl_scatter = 261
+                } else if (angle === "45") {
+                    var alpha = 1.39e-3;
+                    var tvl_scatter = 229
+                } else if (angle === "60") {
+                    var alpha = 8.24e-4;
+                    var tvl_scatter = 205
+                } else if (angle === "90") {
+                    var alpha = 4.26e-4;
+                    var tvl_scatter = 171
+                } else if (angle === "135") {
+                    var alpha = 3e-4;
+                    var tvl_scatter = 144
+                }
+            } else if (vLinac_sec === "10") {
+                document.getElementById('secResult').innerHTML += "<br><br>Besar tegangan LINAC: 10 MV (TVL = 389 g/cm<sup>2</sup>)";
+                var tvl = 389;
+                var tvl_leak = 305;
+                if (angle === "30") {
+                    var alpha = 3.18e-3;
+                    var tvl_scatter = 275
+                } else if (angle === "45") {
+                    var alpha = 1.35e-3;
+                    var tvl_scatter = 233
+                } else if (angle === "60") {
+                    var alpha = 7.46e-4;
+                    var tvl_scatter = 209
+                } else if (angle === "90") {
+                    var alpha = 3.81e-4;
+                    var tvl_scatter = 173
+                } else if (angle === "135") {
+                    var alpha = 3.02e-4;
+                    var tvl_scatter = 144
+                }
+            }
+
+            if (pengguna_sec === "1") {
+                var P = 200e-6
+            } else if (pengguna_sec === "2") {
+                var P = 10e-6
+            }
+
+            // Perhitungan patient scatter barrier
+            var b_patient = P * Math.pow(dsca, 2) * Math.pow(dsec, 2) / (alpha * (W_sec * Math.pow(dsca, 2)) * T_sec * F / 400);
+            var n_patient = Math.log(1 / b_patient);
+            var l_patient = n_patient * tvl_scatter / 10;
+            document.getElementById('secResult').innerHTML += "<br>Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (patient scatter barrier) = " + l_patient.toFixed(2) + " cm";
+
+            // Perhitungan wall scatter barrier
+            var b_wall = P * Math.pow(dw, 2) * Math.pow(dr, 2) / (alpha * A * (W_leak * Math.pow(dsca, 2)) * U_sec * T_sec);
+            var n_wall = Math.log(1 / b_wall);
+            var l_wall = n_wall * tvl_scatter / 10;
+            document.getElementById('secResult').innerHTML += "<br>Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (wall scatter barrier) = " + l_wall.toFixed(2) + " cm";
+
+            // Perhitungan leakage barrier
+            var b_leak = 1000 * P * Math.pow(dsec, 2) / ((W_leak * Math.pow(dsca, 2)) * T_sec);
+            var n_leak = Math.log(1 / b_leak);
+            var l_leak = n_leak * tvl_leak / 10;
+            document.getElementById('secResult').innerHTML += "<br>Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (leakage barrier) = " + l_leak.toFixed(2) + " cm";
+
+            var n_scatter;
+            if (Math.abs(n_patient - n_wall) > 1) {
+                n_scatter = Math.max(n_patient, n_wall);
+            } else if (Math.abs(n_patient - n_wall) <= 1) {
+                n_scatter = Math.max(n_patient, n_wall) + 0.301; // HVL = 0.301 TVL
+            }
+            var l_scatter = (n_scatter * tvl_scatter) / 10;
+
+            var l_secondary;
+            if (Math.abs(l_scatter - l_leak) > tvl_leak / 10) {
+                l_secondary = Math.max(l_scatter, l_leak);
+            } else if (Math.abs(l_scatter - l_leak) <= tvl_leak / 10) {
+                l_secondary = Math.max(l_scatter, l_leak) + (0.301 * tvl_leak / 10);
+            }
+            document.getElementById('secResult').innerHTML += "<br>Ketebalan beton agar memenuhi batas laju dosis yang ditetapkan (secondary barrier) = " + l_secondary.toFixed(2) + " cm";
+        }
+    </script>
+</body>
+<footer>
+    <button id="userGuideButton" class="help-button">Panduan Penggunaan</button>
+    <button id="calcRefButton" class="help-button">Acuan Perhitungan</button>
+    <button id="aboutButton" class="help-button">About</button>
+</footer>
+<style>
+    footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #f8f9fa;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+    }
+
+    .help-button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.getElementById('userGuideButton').onclick = function() {
+        var userChoice = confirm("Apakah ingin membuka tautan panduan penggunaan?\n");
+        if (userChoice) {
+            window.open('https://drive.google.com/file/d/1V7WRIG7CglBrZYNZsrNOPpK_sBzX7gjS/view?usp=sharing', '_blank');
+        }
+    }
+
+    document.getElementById('calcRefButton').onclick = function() {
+        var userChoice = confirm(`Dasar kalkulasi yang digunakan pada program ini:
+Menggunakan Safety Reports Series no.47 IAEA\n\nApakah ingin membuka tautan dokumen?`);
+        if (userChoice) {
+            window.open('https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1223_web.pdf', '_blank');
+        }
+    }
+
+    document.getElementById('aboutButton').onclick = function() {
+        var userChoice = confirm(`Kalkulator Shielding Fasilitas Medis\n\nProgram ini dibuat untuk memudahkan petugas dalam menghitung ketebalan shielding yang diperlukan dari fasilitas medis LINAC. 
+Program ini dibuat menggunakan bahasa pemrograman HTML, CSS, dan JavaScript.
+                         \nProgram ini dibuat oleh:\n- Adhitya Pryazada Hadi\n\nJika ada kritik dan saran terhadap program ini, silahkan hubungi nomor WA:\n0878 5502 0870\n\nApakah ingin membuka tautan source code?`);
+        if (userChoice) {
+            window.open('https://github.com/Adhitya-ph/Kalkulator-Shielding-Medis.git', '_blank');
+        }
+    }
+</script>
+
+</html>
